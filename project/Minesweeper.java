@@ -37,13 +37,11 @@ public class Minesweeper {
     int playerXP = 0;
     int playerLevel = 1;
 
-    
     JPanel startPanel = new JPanel();
     JLabel titleLabel = new JLabel("Minesweeper RPG");
     JButton startButton = new JButton("Start Game");
 
     Minesweeper() {
-        
         startPanel.setLayout(new BorderLayout());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -69,11 +67,11 @@ public class Minesweeper {
                 JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
         if (choice == 0) {
-            setDifficulty(8, 8, 10); 
+            setDifficulty(8, 8, 10);
         } else if (choice == 1) {
-            setDifficulty(10, 10, 20); 
+            setDifficulty(10, 10, 20);
         } else if (choice == 2) {
-            setDifficulty(12, 12, 30); 
+            setDifficulty(12, 12, 30);
         }
 
         startGame();
@@ -87,7 +85,7 @@ public class Minesweeper {
         this.boardHeight = numRows * tileSize;
 
         frame.setSize(boardWidth, boardHeight);
-        startPanel.setVisible(false); 
+        startPanel.setVisible(false);
         resetGame();
     }
 
@@ -116,7 +114,7 @@ public class Minesweeper {
         playerXP = 0;
         playerLevel = 1;
         board = new MineTile[numRows][numCols];
-        mineList = new ArrayList<MineTile>();
+        mineList = new ArrayList<>();
         boardPanel.setLayout(new GridLayout(numRows, numCols));
 
         textLabel.setText("Health: " + playerHealth + " XP: " + playerXP);
@@ -137,11 +135,10 @@ public class Minesweeper {
                         }
                         MineTile tile = (MineTile) e.getSource();
 
-                        
                         if (e.getButton() == MouseEvent.BUTTON1) {
-                            if (tile.getText() == "") {
+                            if (tile.getText().equals("")) {
                                 if (mineList.contains(tile)) {
-                                    
+
                                     tile.setText("💣");
                                     playerHealth -= 10;
                                     textLabel.setText("You Hit a Mine! Health: " + playerHealth + " XP: " + playerXP);
@@ -149,13 +146,15 @@ public class Minesweeper {
                                     if (playerHealth <= 0) {
                                         gameOver = true;
                                         textLabel.setText("Game Over! You Died!");
+                                        showGameOverPopup("Game Over! You Died!");
                                     }
                                 } else {
                                     checkMine(tile.r, tile.c);
-                                    playerXP += 10; 
+                                    if (!tile.getText().equals("")) {
+                                        playerXP += 10;
+                                    }
                                     textLabel.setText("Health: " + playerHealth + " XP: " + playerXP);
 
-                                    
                                     if (playerXP >= playerLevel * 100) {
                                         playerLevel++;
                                         textLabel.setText("Level Up! Health: " + playerHealth + " XP: " + playerXP);
@@ -163,12 +162,14 @@ public class Minesweeper {
                                 }
                             }
                         }
-                        
+
                         else if (e.getButton() == MouseEvent.BUTTON3) {
-                            if (tile.getText() == "" && tile.isEnabled()) {
+                            if (tile.getText().equals("") && tile.isEnabled()) {
                                 tile.setText("🚩");
-                            } else if (tile.getText() == "🚩") {
+                                tile.setEnabled(false);  
+                            } else if (tile.getText().equals("🚩")) {
                                 tile.setText("");
+                                tile.setEnabled(true);   
                             }
                         }
                     }
@@ -243,9 +244,10 @@ public class Minesweeper {
             checkMine(r+1, c+1);
         }
 
-        if (tilesClicked == numRows * numCols - mineList.size()) {
+        if (tilesClicked == (numRows * numCols - mineList.size())) {
             gameOver = true;
             textLabel.setText("Mines Cleared!");
+            showGameOverPopup("You Cleared All Mines!");
         }
     }
 
@@ -259,8 +261,26 @@ public class Minesweeper {
         return 0;
     }
 
+    void showGameOverPopup(String message) {
+        int option = JOptionPane.showOptionDialog(frame, message + "\nDo you want to go back to the start menu?", "Game Over",
+                JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, null, null);
+
+        if (option == JOptionPane.YES_OPTION) {
+            resetStartMenu();
+        } else {
+            frame.dispose();  
+        }
+    }
+
+    void resetStartMenu() {
+        startPanel.setVisible(true);  
+        boardPanel.removeAll();      
+        boardPanel.revalidate();
+        boardPanel.repaint();
+        textLabel.setText("");        
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(Minesweeper::new);
     }
 }
-
