@@ -34,8 +34,34 @@ public class Minesweeper {
     int tilesClicked = 0; //goal is to click all tiles except the ones containing mines
     boolean gameOver = false;
 
+    // Start Screen components
+    JPanel startPanel = new JPanel();
+    JLabel titleLabel = new JLabel("Minesweeper");
+    JButton startButton = new JButton("Start Game");
+
     Minesweeper() {
-        // Show difficulty pop-up before starting
+        // Setup the start screen
+        startPanel.setLayout(new BorderLayout());
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        startPanel.add(titleLabel, BorderLayout.CENTER);
+
+        startButton.setFont(new Font("Arial", Font.BOLD, 20));
+        startButton.addActionListener(e -> showDifficultyPopup());
+        startPanel.add(startButton, BorderLayout.SOUTH);
+
+        frame.setSize(400, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+        frame.add(startPanel);
+
+        frame.setVisible(true);
+    }
+
+    void showDifficultyPopup() {
+        // Show difficulty pop-up before starting the game
         String[] options = {"Easy", "Medium", "Hard"};
         int choice = JOptionPane.showOptionDialog(frame, "Choose Difficulty", "Select Difficulty",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
@@ -49,29 +75,25 @@ public class Minesweeper {
             setDifficulty(12, 12, 30); // Hard
         }
 
-        // Menu setup
-        JMenuBar menuBar = new JMenuBar();
-        JMenu difficultyMenu = new JMenu("Difficulty");
-        JMenuItem easyMenuItem = new JMenuItem("Easy");
-        JMenuItem mediumMenuItem = new JMenuItem("Medium");
-        JMenuItem hardMenuItem = new JMenuItem("Hard");
+        // Proceed to game setup after difficulty selection
+        startGame();
+    }
 
-        easyMenuItem.addActionListener(e -> setDifficulty(8, 8, 10)); // Easy
-        mediumMenuItem.addActionListener(e -> setDifficulty(10, 10, 20)); // Medium
-        hardMenuItem.addActionListener(e -> setDifficulty(12, 12, 30)); // Hard
+    void setDifficulty(int rows, int cols, int mines) {
+        this.numRows = rows;
+        this.numCols = cols;
+        this.mineCount = mines;
+        this.boardWidth = numCols * tileSize;
+        this.boardHeight = numRows * tileSize;
 
-        difficultyMenu.add(easyMenuItem);
-        difficultyMenu.add(mediumMenuItem);
-        difficultyMenu.add(hardMenuItem);
-        menuBar.add(difficultyMenu);
-        frame.setJMenuBar(menuBar);
-
+        // Update the frame size
         frame.setSize(boardWidth, boardHeight);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
+        startPanel.setVisible(false); // Hide start screen
+        resetGame(); // Reset the game with new parameters
+    }
 
+    void startGame() {
+        // Setup game board and start the game
         textLabel.setFont(new Font("Arial", Font.BOLD, 25));
         textLabel.setHorizontalAlignment(JLabel.CENTER);
         textLabel.setText("Minesweeper: " + Integer.toString(mineCount));
@@ -87,19 +109,6 @@ public class Minesweeper {
         frame.setVisible(true);
 
         setMines();
-    }
-
-    void setDifficulty(int rows, int cols, int mines) {
-        this.numRows = rows;
-        this.numCols = cols;
-        this.mineCount = mines;
-        this.boardWidth = numCols * tileSize;
-        this.boardHeight = numRows * tileSize;
-
-        // Update the frame size
-        frame.setSize(boardWidth, boardHeight);
-        boardPanel.removeAll(); // Clear the board
-        resetGame(); // Reset the game with new parameters
     }
 
     void resetGame() {
@@ -237,5 +246,9 @@ public class Minesweeper {
             return 1;
         }
         return 0;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Minesweeper::new);
     }
 }
