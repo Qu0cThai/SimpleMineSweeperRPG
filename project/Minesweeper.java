@@ -37,6 +37,8 @@ public class Minesweeper {
     int playerXP = 0;
     int playerLevel = 1;
 
+    int bombDamage = 10; 
+
     JPanel startPanel = new JPanel();
     JLabel titleLabel = new JLabel("Minesweeper RPG");
     JButton startButton = new JButton("Start Game");
@@ -67,20 +69,21 @@ public class Minesweeper {
                 JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
         if (choice == 0) {
-            setDifficulty(8, 8, 10);
+            setDifficulty(8, 8, 10, 5); 
         } else if (choice == 1) {
-            setDifficulty(10, 10, 20);
+            setDifficulty(10, 10, 20, 10); 
         } else if (choice == 2) {
-            setDifficulty(12, 12, 30);
+            setDifficulty(12, 12, 30, 20); 
         }
 
         startGame();
     }
 
-    void setDifficulty(int rows, int cols, int mines) {
+    void setDifficulty(int rows, int cols, int mines, int damage) {
         this.numRows = rows;
         this.numCols = cols;
         this.mineCount = mines;
+        this.bombDamage = damage; 
         this.boardWidth = numCols * tileSize;
         this.boardHeight = numRows * tileSize;
 
@@ -138,9 +141,9 @@ public class Minesweeper {
                         if (e.getButton() == MouseEvent.BUTTON1) {
                             if (tile.getText().equals("")) {
                                 if (mineList.contains(tile)) {
-
+                                    
                                     tile.setText("💣");
-                                    playerHealth -= 10;
+                                    playerHealth -= bombDamage; 
                                     textLabel.setText("You Hit a Mine! Health: " + playerHealth + " XP: " + playerXP);
 
                                     if (playerHealth <= 0) {
