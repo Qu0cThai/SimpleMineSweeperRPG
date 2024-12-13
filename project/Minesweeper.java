@@ -30,16 +30,28 @@ public class Minesweeper {
     ArrayList<MineTile> mineList;
     Random random = new Random();
 
+    int score = 0;
     int tilesClicked = 0;
     boolean gameOver = false;
     int playerHealth = 100;
     int playerXP = 0;
     int playerLevel = 1;
-    int playerCoins = 0;
+    int playerCoins = 10000;
+    int playerAttack = 10;
+    int playerDefense = 5;
 
     int bombDamage = 10;
+    int healthCounter = 0;
     int currentFloor = 1;
     int maxFloors = 3;
+
+    Boss[] bosses = {
+    new Boss("Goblin King", 50, 10, 5),
+    new Boss("Dragon", 100, 20, 10),
+    new Boss("Dark Knight", 150, 30, 20)
+    };
+    int currentBossIndex = 0;
+
 
     Minesweeper() {
         setupMainMenu();
@@ -52,6 +64,11 @@ public class Minesweeper {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
+
+        
+        if (playerHealth <= 0) {
+            resetPlayerStats();
+        }
 
         JLabel titleLabel = new JLabel("Minesweeper RPG", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 30));
@@ -79,11 +96,8 @@ public class Minesweeper {
         frame.setVisible(true);
     }
 
-    void startGame() {
-        playerHealth = 100;
-        playerXP = 0;
-        currentFloor = 1;
 
+    void startGame() {
         frame.getContentPane().removeAll();
         frame.setSize(boardWidth, boardHeight);
         frame.setLayout(new BorderLayout());
@@ -102,6 +116,10 @@ public class Minesweeper {
     }
 
     void setupFloor() {
+        if (playerHealth <= 0) {
+            resetPlayerStats(); 
+        }
+
         tilesClicked = 0;
         gameOver = false;
         boardWidth = numCols * tileSize;
@@ -115,6 +133,7 @@ public class Minesweeper {
 
         textLabel.setText("Health: " + playerHealth + " XP: " + playerXP + " Coins: " + playerCoins + " Floor: " + currentFloor);
 
+        
         for (int r = 0; r < numRows; r++) {
             for (int c = 0; c < numCols; c++) {
                 MineTile tile = new MineTile(r, c);
@@ -135,18 +154,15 @@ public class Minesweeper {
                             if (tile.getText().equals("")) {
                                 if (mineList.contains(tile)) {
                                     tile.setText("\uD83D\uDCA3");
-                                    playerHealth -= bombDamage;
-                                    textLabel.setText("You Hit a Mine! Health: " + playerHealth + " XP: " + playerXP);
+                                    playerHealth -= bombDamage + healthCounter;
+                                    textLabel.setText("You Hit a Mine! Health: " + playerHealth + " Score: " + score);
 
                                     if (playerHealth <= 0) {
                                         loseGame();
                                     }
                                 } else {
                                     checkMine(tile.r, tile.c);
-                                    if (!tile.getText().equals("")) {
-                                        playerXP += 10;
-                                    }
-                                    textLabel.setText("Health: " + playerHealth + " XP: " + playerXP + " Coins: " + playerCoins + " Floor: " + currentFloor);
+                                    textLabel.setText("Health: " + playerHealth + " Coins: " + playerCoins + " Floor: " + currentFloor + " Score: " + score);
                                 }
                             }
                         } else if (e.getButton() == MouseEvent.BUTTON3) {
@@ -169,6 +185,7 @@ public class Minesweeper {
         boardPanel.revalidate();
         boardPanel.repaint();
     }
+
 
     void setMines() {
         int mineLeft = mineCount;
@@ -195,6 +212,7 @@ public class Minesweeper {
         }
         tile.setEnabled(false);
         tilesClicked++;
+        score += 10; 
 
         int minesFound = 0;
 
@@ -230,7 +248,7 @@ public class Minesweeper {
                 winGame();
             }
         }
-    }
+}
 
     int countMine(int r, int c) {
         if (r < 0 || r >= numRows || c < 0 || c >= numCols) {
@@ -253,26 +271,139 @@ public class Minesweeper {
                 tile.setEnabled(false);
             }
         }
-        playerCoins += playerXP / 10;
-        JOptionPane.showMessageDialog(frame, "Game Over! Coins Earned: " + (playerXP / 10) + "\nReturning to Main Menu.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+
+        int coinsEarned = score / 10; 
+        playerCoins += coinsEarned;
+
+        JOptionPane.showMessageDialog(frame, "Game Over! Coins Earned: " + coinsEarned + "\nReturning to Main Menu.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
         setupMainMenu();
     }
 
     void winGame() {
-        playerCoins += playerXP / 10;
-        JOptionPane.showMessageDialog(frame, "Congratulations! You cleared all floors and won the game!\nCoins Earned: " + (playerXP / 10), "Victory", JOptionPane.INFORMATION_MESSAGE);
+        int coinsEarned = score / 10; 
+        playerCoins += coinsEarned;
+
+        JOptionPane.showMessageDialog(frame, "Congratulations! You cleared all floors and won the game!\nCoins Earned: " + coinsEarned, "Victory", JOptionPane.INFORMATION_MESSAGE);
         setupMainMenu();
     }
 
     void openShop() {
-        JOptionPane.showMessageDialog(frame, "Shop coming soon!", "Shop", JOptionPane.INFORMATION_MESSAGE);
+        String[] options = { "Increase Health (100 Coins)", "Increase Attack (150 Coins)", "Increase Defense (150 Coins)", "Exit" };
+        while (true) {
+            int choice = JOptionPane.showOptionDialog(frame, "Coins: " + playerCoins, "Shop",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+
+            if (choice == 0 && playerCoins >= 100) {
+                playerHealth += 10;
+                playerCoins -= 100;
+                healthCounter += 10;
+            } else if (choice == 1 && playerCoins >= 150) {
+                playerAttack += 5;
+                playerCoins -= 150;
+            } else if (choice == 2 && playerCoins >= 150) {
+                playerDefense += 3;
+                playerCoins -= 150;
+            } else if (choice == 3 || choice == -1) {
+                break;
+            } else {
+                JOptionPane.showMessageDialog(frame, "Not enough coins!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     void startBossFight() {
-        JOptionPane.showMessageDialog(frame, "Boss Fight coming soon!", "Boss Fight", JOptionPane.INFORMATION_MESSAGE);
+        if (currentBossIndex >= bosses.length) {
+            JOptionPane.showMessageDialog(frame, "You have defeated all bosses! Congratulations!", "Victory", JOptionPane.INFORMATION_MESSAGE);
+            setupMainMenu();
+            return;
+        }
+
+        frame.getContentPane().removeAll();
+        frame.setSize(400, 400);
+        frame.setLayout(new BorderLayout());
+
+        Boss boss = bosses[currentBossIndex];
+        
+        
+        JLabel bossLabel = new JLabel(boss.name + " - Health: " + boss.health, JLabel.CENTER);
+        bossLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        frame.add(bossLabel, BorderLayout.NORTH);
+
+        
+        JLabel playerStatsLabel = new JLabel("Player Health: " + playerHealth + " | Attack: " + playerAttack + " | Defense: " + playerDefense, JLabel.CENTER);
+        playerStatsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        frame.add(playerStatsLabel, BorderLayout.SOUTH);
+
+        JPanel combatPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+
+        JButton attackButton = new JButton("Attack");
+        JButton defendButton = new JButton("Defend");
+
+        attackButton.addActionListener(e -> {
+            if (playerHealth <= 0 || boss.health <= 0) return; 
+
+            int damageToBoss = Math.max(0, playerAttack - boss.defense);
+            int damageToPlayer = Math.max(0, boss.attack - playerDefense);
+
+            boss.health -= damageToBoss;
+            playerHealth -= damageToPlayer;
+
+            bossLabel.setText(boss.name + " - Health: " + Math.max(0, boss.health));
+            playerStatsLabel.setText("Player Health: " + Math.max(0, playerHealth) + " | Attack: " + playerAttack + " | Defense: " + playerDefense);
+
+            if (boss.health <= 0) {
+                currentBossIndex++;
+                JOptionPane.showMessageDialog(frame, "You defeated " + boss.name + "!", "Victory", JOptionPane.INFORMATION_MESSAGE);
+                setupMainMenu();
+            } else if (playerHealth <= 0) {
+                endBossFight("The boss defeated you!", "Game Over");
+            }
+        });
+
+        defendButton.addActionListener(e -> {
+            if (playerHealth <= 0 || boss.health <= 0) return; 
+
+            int damageToPlayer = Math.max(0, boss.attack - (playerDefense * 2)); 
+            playerHealth -= damageToPlayer;
+
+            playerStatsLabel.setText("Player Health: " + Math.max(0, playerHealth) + " | Attack: " + playerAttack + " | Defense: " + playerDefense);
+
+            if (playerHealth <= 0) {
+                endBossFight("The boss defeated you!", "Game Over");
+            }
+        });
+
+        combatPanel.add(attackButton);
+        combatPanel.add(defendButton);
+        frame.add(combatPanel, BorderLayout.CENTER);
+        frame.setVisible(true);
     }
 
-    public static void main(String[] args) {
-        new Minesweeper();
+    
+    void endBossFight(String message, String title) {
+        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.INFORMATION_MESSAGE);
+
+        
+        if (playerHealth <= 0) {
+            currentBossIndex = 0;
+            resetBossHealth();
+        }
+
+        setupMainMenu(); 
+    }
+
+    void resetPlayerStats() {
+        playerHealth = 100; 
+        playerHealth += healthCounter; 
+        score = 0;
+        currentFloor = 1;
+    }
+
+    void resetBossHealth() {
+    bosses = new Boss[] {
+        new Boss("Goblin King", 50, 10, 5),
+        new Boss("Dragon", 100, 20, 10),
+        new Boss("Dark Knight", 150, 30, 20)
+        }; 
     }
 }
