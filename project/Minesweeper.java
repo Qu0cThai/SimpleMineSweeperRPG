@@ -14,6 +14,20 @@ public class Minesweeper {
         }
     }
 
+    private static class Boss {
+        String name;
+        int health;
+        int attack;
+        int defense;
+
+        public Boss(String name, int health, int attack, int defense) {
+            this.name = name;
+            this.health = health;
+            this.attack = attack;
+            this.defense = defense;
+        }
+    }
+
     int tileSize = 70;
     int numRows = 8;
     int numCols = numRows;
@@ -34,24 +48,21 @@ public class Minesweeper {
     int tilesClicked = 0;
     boolean gameOver = false;
     int playerHealth = 100;
-    int playerXP = 0;
-    int playerLevel = 1;
-    int playerCoins = 10000;
+    int playerCoins = 100;
     int playerAttack = 10;
     int playerDefense = 5;
 
-    int bombDamage = 20;
+    int bombDamage = 10;
     int healthCounter = 0;
     int currentFloor = 1;
     int maxFloors = 3;
 
     Boss[] bosses = {
-    new Boss("Goblin King", 50, 10, 5),
-    new Boss("Dragon", 100, 20, 10),
-    new Boss("Dark Knight", 150, 30, 20)
+        new Boss("Goblin King", 100, 20, 10),
+        new Boss("Dragon", 200, 40, 20),
+        new Boss("Dark Knight", 400, 80, 40)
     };
     int currentBossIndex = 0;
-
 
     Minesweeper() {
         setupMainMenu();
@@ -65,7 +76,6 @@ public class Minesweeper {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
-        
         if (playerHealth <= 0) {
             resetPlayerStats();
         }
@@ -96,7 +106,6 @@ public class Minesweeper {
         frame.setVisible(true);
     }
 
-
     void startGame() {
         frame.getContentPane().removeAll();
         frame.setSize(boardWidth, boardHeight);
@@ -120,7 +129,7 @@ public class Minesweeper {
             resetPlayerStats();
         }
 
-        numRows = 8 + (currentFloor - 1) * 2; 
+        numRows = 8 + (currentFloor - 1) * 2;
         numCols = numRows;
         mineCount = 10 + (currentFloor - 1) * 5;
 
@@ -135,7 +144,7 @@ public class Minesweeper {
         boardPanel.removeAll();
         boardPanel.setLayout(new GridLayout(numRows, numCols));
 
-        textLabel.setText("Health: " + playerHealth + " XP: " + playerXP + " Coins: " + playerCoins + " Floor: " + currentFloor);
+        textLabel.setText("Health: " + playerHealth + " Coins: " + playerCoins + " Floor: " + currentFloor + " Score: " + score);
 
         for (int r = 0; r < numRows; r++) {
             for (int c = 0; c < numCols; c++) {
@@ -157,7 +166,7 @@ public class Minesweeper {
                             if (tile.getText().equals("")) {
                                 if (mineList.contains(tile)) {
                                     tile.setText("\uD83D\uDCA3");
-                                    playerHealth -= bombDamage + healthCounter;
+                                    playerHealth -= bombDamage;
                                     textLabel.setText("You Hit a Mine! Health: " + playerHealth + " Score: " + score);
 
                                     if (playerHealth <= 0) {
@@ -188,8 +197,6 @@ public class Minesweeper {
         boardPanel.repaint();
     }
 
-
-
     void setMines() {
         int mineLeft = mineCount;
         while (mineLeft > 0) {
@@ -215,7 +222,7 @@ public class Minesweeper {
         }
         tile.setEnabled(false);
         tilesClicked++;
-        score += 10; 
+        score += 10;
 
         int minesFound = 0;
 
@@ -251,7 +258,7 @@ public class Minesweeper {
                 winGame();
             }
         }
-}
+    }
 
     int countMine(int r, int c) {
         if (r < 0 || r >= numRows || c < 0 || c >= numCols) {
@@ -275,7 +282,7 @@ public class Minesweeper {
             }
         }
 
-        int coinsEarned = score / 10; 
+        int coinsEarned = score / 10;
         playerCoins += coinsEarned;
 
         JOptionPane.showMessageDialog(frame, "Game Over! Coins Earned: " + coinsEarned + "\nReturning to Main Menu.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
@@ -283,7 +290,7 @@ public class Minesweeper {
     }
 
     void winGame() {
-        int coinsEarned = score / 10; 
+        int coinsEarned = score / 10;
         playerCoins += coinsEarned;
 
         JOptionPane.showMessageDialog(frame, "Congratulations! You cleared all floors and won the game!\nCoins Earned: " + coinsEarned, "Victory", JOptionPane.INFORMATION_MESSAGE);
@@ -409,4 +416,6 @@ public class Minesweeper {
         new Boss("Dark Knight", 150, 30, 20)
         }; 
     }
+
 }
+
