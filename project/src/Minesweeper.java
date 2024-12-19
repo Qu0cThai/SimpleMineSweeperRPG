@@ -1,7 +1,10 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import javax.sound.sampled.*;
 import javax.swing.*;
 
 public class Minesweeper {
@@ -88,15 +91,24 @@ public class Minesweeper {
 
         JButton sweepButton = new JButton("Sweep");
         sweepButton.setFont(new Font("Arial", Font.PLAIN, 20));
-        sweepButton.addActionListener(e -> startGame());
+        sweepButton.addActionListener(e -> {
+            playSound("button_click.wav"); // Play button click sound
+            startGame();
+        });
 
         JButton shopButton = new JButton("Shop");
         shopButton.setFont(new Font("Arial", Font.PLAIN, 20));
-        shopButton.addActionListener(e -> openShop());
+        shopButton.addActionListener(e -> {
+            playSound("button_click.wav");
+            openShop();
+        });
 
         JButton bossFightButton = new JButton("Boss Fight");
         bossFightButton.setFont(new Font("Arial", Font.PLAIN, 20));
-        bossFightButton.addActionListener(e -> startBossFight());
+        bossFightButton.addActionListener(e -> {
+            playSound("button_click.wav");
+            startBossFight();
+        });
 
         buttonPanel.add(sweepButton);
         buttonPanel.add(shopButton);
@@ -167,6 +179,7 @@ public class Minesweeper {
                                 if (mineList.contains(tile)) {
                                     tile.setText("\uD83D\uDCA3");
                                     playerHealth -= bombDamage;
+                                    playSound("explosion.wav");
                                     textLabel.setText("You Hit a Mine! Health: " + playerHealth + " Score: " + score);
 
                                     if (playerHealth <= 0) {
@@ -284,7 +297,7 @@ public class Minesweeper {
 
         int coinsEarned = score / 10;
         playerCoins += coinsEarned;
-
+        playSound("lose_sound.wav");
         JOptionPane.showMessageDialog(frame, "Game Over! Coins Earned: " + coinsEarned + "\nReturning to Main Menu.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
         setupMainMenu();
     }
@@ -292,7 +305,7 @@ public class Minesweeper {
     void winGame() {
         int coinsEarned = score / 10;
         playerCoins += coinsEarned;
-
+        playSound("win_sound.wav");
         JOptionPane.showMessageDialog(frame, "Congratulations! You cleared all floors and won the game!\nCoins Earned: " + coinsEarned, "Victory", JOptionPane.INFORMATION_MESSAGE);
         setupMainMenu();
     }
@@ -344,10 +357,9 @@ public class Minesweeper {
         playerStatsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         frame.add(playerStatsLabel, BorderLayout.SOUTH);
 
-        JPanel combatPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        JPanel combatPanel = new JPanel(new GridLayout(1, 1, 10, 10));
 
         JButton attackButton = new JButton("Attack");
-        JButton defendButton = new JButton("Defend");
 
         attackButton.addActionListener(e -> {
             if (playerHealth <= 0 || boss.health <= 0) return; 
@@ -370,21 +382,7 @@ public class Minesweeper {
             }
         });
 
-        defendButton.addActionListener(e -> {
-            if (playerHealth <= 0 || boss.health <= 0) return; 
-
-            int damageToPlayer = Math.max(0, boss.attack - (playerDefense * 2)); 
-            playerHealth -= damageToPlayer;
-
-            playerStatsLabel.setText("Player Health: " + Math.max(0, playerHealth) + " | Attack: " + playerAttack + " | Defense: " + playerDefense);
-
-            if (playerHealth <= 0) {
-                endBossFight("The boss defeated you!", "Game Over");
-            }
-        });
-
         combatPanel.add(attackButton);
-        combatPanel.add(defendButton);
         frame.add(combatPanel, BorderLayout.CENTER);
         frame.setVisible(true);
     }
@@ -415,6 +413,23 @@ public class Minesweeper {
         new Boss("Dragon", 100, 20, 10),
         new Boss("Dark Knight", 150, 30, 20)
         }; 
+    }
+
+    public void playSound(String soundFileName) {
+        try {
+            // Construct the path to the sound file in the sfx folder
+            File soundFile = new File("sfx/" + soundFileName);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+
+            // Get a clip resource
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+
+            // Play the sound
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace(); // Handle error if sound file is missing or invalid
+        }
     }
 
 }
