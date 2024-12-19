@@ -55,13 +55,13 @@ public class Minesweeper {
     int playerAttack = 10;
     int playerDefense = 5;
 
-    int bombDamage = 10;
+    int bombDamage = 20;
     int healthCounter = 0;
     int currentFloor = 1;
     int maxFloors = 3;
 
     Boss[] bosses = {
-        new Boss("Goblin King", 100, 20, 10),
+        new Boss("Machine", 100, 20, 10),
         new Boss("Dragon", 200, 40, 20),
         new Boss("Dark Knight", 400, 80, 40)
     };
@@ -92,7 +92,7 @@ public class Minesweeper {
         JButton sweepButton = new JButton("Sweep");
         sweepButton.setFont(new Font("Arial", Font.PLAIN, 20));
         sweepButton.addActionListener(e -> {
-            playSound("button_click.wav"); // Play button click sound
+            playSound("button_click.wav"); 
             startGame();
         });
 
@@ -320,12 +320,15 @@ public class Minesweeper {
                 playerHealth += 10;
                 playerCoins -= 100;
                 healthCounter += 10;
+                playSound("buy.wav");
             } else if (choice == 1 && playerCoins >= 150) {
                 playerAttack += 5;
                 playerCoins -= 150;
+                playSound("buy.wav");
             } else if (choice == 2 && playerCoins >= 150) {
                 playerDefense += 3;
                 playerCoins -= 150;
+                playSound("buy.wav");
             } else if (choice == 3 || choice == -1) {
                 break;
             } else {
@@ -346,24 +349,61 @@ public class Minesweeper {
         frame.setLayout(new BorderLayout());
 
         Boss boss = bosses[currentBossIndex];
-        
+
         
         JLabel bossLabel = new JLabel(boss.name + " - Health: " + boss.health, JLabel.CENTER);
         bossLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        frame.add(bossLabel, BorderLayout.NORTH);
 
-        
         JLabel playerStatsLabel = new JLabel("Player Health: " + playerHealth + " | Attack: " + playerAttack + " | Defense: " + playerDefense, JLabel.CENTER);
         playerStatsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        frame.add(playerStatsLabel, BorderLayout.SOUTH);
 
-        JPanel combatPanel = new JPanel(new GridLayout(1, 1, 10, 10));
+        
+        String bossImagePath = "img/";
+        if (currentBossIndex == 0) {
+            bossImagePath += "machine.png";  
+        } else if (currentBossIndex == 1) {
+            bossImagePath += "dragon.png";  
+        } else if (currentBossIndex == 2) {
+            bossImagePath += "dark_knight.png";  
+        }
 
+        
+        ImageIcon bossImage = new ImageIcon(bossImagePath);  
+        Image image = bossImage.getImage(); 
+        Image scaledImage = image.getScaledInstance(200, 200, Image.SCALE_SMOOTH); 
+        ImageIcon scaledBossImage = new ImageIcon(scaledImage); 
+
+        
+        JLabel bossImageLabel = new JLabel(scaledBossImage);
+
+        
+        JPanel combatPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        combatPanel.add(bossLabel, gbc);
+
+        
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        combatPanel.add(bossImageLabel, gbc);
+
+        
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        combatPanel.add(playerStatsLabel, gbc);
+
+        
         JButton attackButton = new JButton("Attack");
-
         attackButton.addActionListener(e -> {
-            if (playerHealth <= 0 || boss.health <= 0) return; 
-
+            if (playerHealth <= 0 || boss.health <= 0) return;
+            playSound("attack.wav");
             int damageToBoss = Math.max(0, playerAttack - boss.defense);
             int damageToPlayer = Math.max(0, boss.attack - playerDefense);
 
@@ -382,10 +422,16 @@ public class Minesweeper {
             }
         });
 
-        combatPanel.add(attackButton);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        combatPanel.add(attackButton, gbc);
+
+        
         frame.add(combatPanel, BorderLayout.CENTER);
         frame.setVisible(true);
     }
+
 
     
     void endBossFight(String message, String title) {
@@ -406,10 +452,9 @@ public class Minesweeper {
         score = 0;
         currentFloor = 1;
     }
-
     void resetBossHealth() {
     bosses = new Boss[] {
-        new Boss("Goblin King", 50, 10, 5),
+        new Boss("Machine", 50, 10, 5),
         new Boss("Dragon", 100, 20, 10),
         new Boss("Dark Knight", 150, 30, 20)
         }; 
@@ -417,20 +462,17 @@ public class Minesweeper {
 
     public void playSound(String soundFileName) {
         try {
-            // Construct the path to the sound file in the sfx folder
             File soundFile = new File("sfx/" + soundFileName);
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
-
-            // Get a clip resource
             Clip clip = AudioSystem.getClip();
             clip.open(audioStream);
-
-            // Play the sound
+            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            float volume = -10.0f;
+            gainControl.setValue(volume);
             clip.start();
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-            e.printStackTrace(); // Handle error if sound file is missing or invalid
+            e.printStackTrace(); 
         }
     }
-
 }
 
