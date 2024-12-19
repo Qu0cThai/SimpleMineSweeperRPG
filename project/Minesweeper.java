@@ -40,7 +40,7 @@ public class Minesweeper {
     int playerAttack = 10;
     int playerDefense = 5;
 
-    int bombDamage = 10;
+    int bombDamage = 20;
     int healthCounter = 0;
     int currentFloor = 1;
     int maxFloors = 3;
@@ -117,8 +117,12 @@ public class Minesweeper {
 
     void setupFloor() {
         if (playerHealth <= 0) {
-            resetPlayerStats(); 
+            resetPlayerStats();
         }
+
+        numRows = 8 + (currentFloor - 1) * 2; 
+        numCols = numRows;
+        mineCount = 10 + (currentFloor - 1) * 5;
 
         tilesClicked = 0;
         gameOver = false;
@@ -133,7 +137,6 @@ public class Minesweeper {
 
         textLabel.setText("Health: " + playerHealth + " XP: " + playerXP + " Coins: " + playerCoins + " Floor: " + currentFloor);
 
-        
         for (int r = 0; r < numRows; r++) {
             for (int c = 0; c < numCols; c++) {
                 MineTile tile = new MineTile(r, c);
@@ -180,11 +183,11 @@ public class Minesweeper {
                 boardPanel.add(tile);
             }
         }
-
         setMines();
         boardPanel.revalidate();
         boardPanel.repaint();
     }
+
 
 
     void setMines() {
